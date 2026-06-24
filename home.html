@@ -1,0 +1,428 @@
+<!DOCTYPE html><html class="dark" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>ASTRON-X | Strategic Blast Simulator</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Geist:wght@400;500;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Inter:wght@100..900&amp;display=swap" rel="stylesheet">
+<style>
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+        .scanline-effect::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(to bottom, transparent, rgba(116, 245, 255, 0.2), transparent);
+            animation: scanline 8s linear infinite;
+            pointer-events: none;
+        }
+        .tactical-grid {
+            background-image: 
+                linear-gradient(rgba(116, 245, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(116, 245, 255, 0.05) 1px, transparent 1px);
+            background-size: 32px 32px;
+        }
+        .glass-panel {
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(18, 24, 32, 0.8);
+        }
+        .glow-cyan {
+            filter: drop-shadow(0 0 8px rgba(116, 245, 255, 0.4));
+        }
+        body {
+            background-color: #08151c;
+            color: #d7e4ef;
+            overflow-x: hidden;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "secondary-container": "#464c55",
+                      "primary-fixed": "#74f5ff",
+                      "surface-container-high": "#1f2b34",
+                      "outline-variant": "#3a494b",
+                      "secondary-fixed": "#dde3ee",
+                      "tertiary-container": "#d8dbe4",
+                      "surface-bright": "#2e3b43",
+                      "on-tertiary": "#2d3137",
+                      "on-surface-variant": "#b9cacb",
+                      "on-secondary": "#2b3139",
+                      "surface-dim": "#08151c",
+                      "on-tertiary-container": "#5c6067",
+                      "primary-container": "#00f2ff",
+                      "background": "#08151c",
+                      "on-primary-fixed": "#002022",
+                      "surface-container-highest": "#2a363f",
+                      "on-secondary-container": "#b6bcc7",
+                      "on-tertiary-fixed": "#181c22",
+                      "inverse-on-surface": "#26323a",
+                      "on-error-container": "#ffdad6",
+                      "error": "#ffb4ab",
+                      "surface-container-lowest": "#041017",
+                      "error-container": "#93000a",
+                      "surface-tint": "#00dbe7",
+                      "on-surface": "#d7e4ef",
+                      "on-primary": "#00363a",
+                      "on-error": "#690005",
+                      "secondary": "#c1c7d2",
+                      "inverse-primary": "#00696f",
+                      "inverse-surface": "#d7e4ef",
+                      "surface-variant": "#2a363f",
+                      "surface": "#08151c",
+                      "on-secondary-fixed": "#161c24",
+                      "on-tertiary-fixed-variant": "#43474e",
+                      "on-primary-container": "#006a71",
+                      "tertiary-fixed-dim": "#c3c6cf",
+                      "on-primary-fixed-variant": "#004f54",
+                      "surface-container-low": "#111d25",
+                      "secondary-fixed-dim": "#c1c7d2",
+                      "tertiary-fixed": "#dfe2eb",
+                      "outline": "#849495",
+                      "tertiary": "#f6f7ff",
+                      "on-background": "#d7e4ef",
+                      "primary-fixed-dim": "#00dbe7",
+                      "on-secondary-fixed-variant": "#414750",
+                      "primary": "#e1fdff",
+                      "surface-container": "#152129"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "unit": "4px",
+                      "margin-desktop": "32px",
+                      "gutter": "16px",
+                      "margin-mobile": "16px",
+                      "container-max": "1440px"
+              },
+              "fontFamily": {
+                      "display-lg": ["Inter"],
+                      "headline-lg": ["Inter"],
+                      "mono-data": ["Geist"],
+                      "body-md": ["Inter"],
+                      "title-md": ["Inter"],
+                      "label-sm": ["Geist"],
+                      "headline-lg-mobile": ["Inter"]
+              },
+              "fontSize": {
+                      "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "mono-data": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "title-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                      "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="font-body-md bg-background selection:bg-primary-fixed/30">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-desktop h-16 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30">
+<div class="flex items-center gap-8">
+<span class="font-display-lg text-[24px] font-bold tracking-tighter text-primary-fixed drop-shadow-[0_0_8px_rgba(0,219,231,0.4)]">DRDO-HazardScope</span>
+<div class="hidden md:flex items-center gap-6">
+<a class="text-primary-fixed border-b-2 border-primary-fixed pb-1 font-title-md text-[14px] uppercase tracking-widest" href="home.html">MISSIONS</a>
+<a class="text-on-surface-variant font-medium hover:text-primary-fixed transition-colors duration-200 font-title-md text-[14px] uppercase tracking-widest" href="3d_simulator.html">TELEMETRY</a>
+<a class="text-on-surface-variant font-medium hover:text-primary-fixed transition-colors duration-200 font-title-md text-[14px] uppercase tracking-widest" href="data.html">ANALYSIS</a>
+<a class="text-on-surface-variant font-medium hover:text-primary-fixed transition-colors duration-200 font-title-md text-[14px] uppercase tracking-widest" href="#">ARCHIVE</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="bg-primary-fixed text-on-primary-fixed px-6 py-2 font-bold text-label-sm tracking-widest uppercase hover:bg-primary-container transition-all active:scale-95">
+                INITIATE BLAST
+            </button>
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined cursor-pointer hover:text-primary-fixed">settings</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-primary-fixed">notifications</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-primary-fixed">account_circle</span>
+</div>
+</div>
+</nav>
+<!-- SideNavBar (Hidden on Mobile) -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-64px)] w-64 z-40 flex flex-col bg-surface-container-low/90 backdrop-blur-2xl border-r border-outline-variant/20 hidden md:flex">
+<div class="p-6 border-b border-outline-variant/20">
+<h3 class="font-headline-lg text-[18px] text-primary-fixed font-bold">STRATEGIC OPS</h3>
+
+</div>
+<nav class="flex-1 py-4 overflow-y-auto">
+<a class="flex items-center gap-4 bg-primary-fixed/10 text-primary-fixed border-l-4 border-primary-fixed py-3 px-6 font-label-sm uppercase tracking-widest" href="home.html">
+<span class="material-symbols-outlined">dashboard</span> DASHBOARD
+            </a>
+<a class="flex items-center gap-4 text-on-surface-variant/70 py-3 px-6 hover:bg-surface-bright/50 hover:text-primary-fixed transition-all font-label-sm uppercase tracking-widest" href="data.html">
+<span class="material-symbols-outlined">precision_manufacturing</span> EXPLOSIVES
+            </a>
+<a class="flex items-center gap-4 text-on-surface-variant/70 py-3 px-6 hover:bg-surface-bright/50 hover:text-primary-fixed transition-all font-label-sm uppercase tracking-widest" href="3d_simulator.html">
+<span class="material-symbols-outlined">architecture</span> GEOMETRY
+            </a>
+
+
+</nav>
+<div class="p-6 space-y-4 border-t border-outline-variant/20">
+<button class="w-full border border-primary-fixed/50 text-primary-fixed py-2 font-label-sm tracking-widest hover:bg-primary-fixed/10 transition-colors uppercase">
+                NEW SIMULATION
+            </button>
+<div class="flex flex-col gap-2">
+<a class="flex items-center gap-4 text-on-surface-variant/70 hover:text-primary-fixed transition-colors font-label-sm" href="#">
+<span class="material-symbols-outlined">terminal</span> SYSTEMS
+                </a>
+<a class="flex items-center gap-4 text-error hover:text-error-container transition-colors font-label-sm" href="#">
+<span class="material-symbols-outlined">logout</span> LOGOUT
+                </a>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:ml-64 pt-16 min-h-screen tactical-grid">
+<!-- Hero Section -->
+<section class="relative h-[80vh] flex flex-col items-center justify-center text-center px-6 overflow-hidden scanline-effect">
+<div class="absolute inset-0 z-0">
+
+<div class="absolute inset-0 bg-gradient-to-b from-background/20 via-background/60 to-background"></div>
+</div>
+<div class="relative z-10 max-w-5xl">
+<div class="inline-flex items-center gap-2 px-3 py-1 bg-primary-fixed/10 border-l-2 border-primary-fixed mb-8">
+<span class="material-symbols-outlined text-primary-fixed text-sm">shield</span>
+<span class="font-label-sm text-primary-fixed tracking-[0.2em] uppercase">Security Level: ALPHA-6</span>
+</div>
+<h1 class="font-display-lg text-display-lg text-primary mb-6 drop-shadow-[0_0_20px_rgba(116,245,255,0.3)]">
+                    ASTRON-X STRATEGIC <br>
+<span class="text-primary-fixed">BLAST SIMULATOR</span>
+</h1>
+<p class="font-title-md text-on-surface-variant max-w-2xl mx-auto mb-10 border-l border-r border-outline-variant/30 px-8 py-2">
+                    Scientific damage assessment and predictive modeling for defense intelligence. Precise structural vulnerability analysis through advanced fluid dynamics.
+                </p>
+<div class="flex flex-col sm:flex-row gap-4 justify-center">
+<button class="bg-primary-fixed text-on-primary-fixed font-bold font-title-md px-10 py-4 hover:bg-primary-container glow-cyan transition-all transform hover:-translate-y-1 active:scale-95 uppercase tracking-widest">
+                        INITIATE SIMULATION
+                    </button>
+<button class="border border-outline text-on-surface font-bold font-title-md px-10 py-4 hover:bg-surface-bright transition-all uppercase tracking-widest">
+                        VIEW PROTOCOLS
+                    </button>
+</div>
+</div>
+<!-- HUD Elements -->
+<div class="absolute bottom-12 left-12 hidden lg:block text-left font-mono-data text-primary-fixed/60">
+<div class="mb-2">COORD: 28.6135° N, 77.2090° E</div>
+<div class="mb-2">SYSTEM_STATUS: NOMINAL</div>
+<div class="flex gap-1">
+<div class="w-4 h-4 bg-primary-fixed"></div>
+<div class="w-4 h-4 bg-primary-fixed/40"></div>
+<div class="w-4 h-4 bg-primary-fixed/40"></div>
+<div class="w-4 h-4 bg-primary-fixed/40"></div>
+</div>
+</div>
+<div class="absolute bottom-12 right-12 hidden lg:block text-right font-mono-data text-primary-fixed/60">
+<div class="mb-2">ENTROPY_FLUX: 0.042%</div>
+<div class="mb-2">REF: MIL-STD-1296A</div>
+<div class="text-[10px] opacity-50 uppercase tracking-tighter">Encrypted Connection Established</div>
+</div>
+</section>
+<!-- Project Overview / Bento Grid -->
+<section class="px-margin-desktop py-24 max-w-container-max mx-auto">
+<div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-4">
+<div>
+<span class="font-label-sm text-primary-fixed tracking-widest uppercase">Overview</span>
+<h2 class="font-headline-lg text-headline-lg mt-2">STRATEGIC IMPORTANCE</h2>
+</div>
+<div class="h-px bg-outline-variant/30 flex-1 mx-8 mb-4 hidden md:block"></div>
+<p class="font-body-md text-on-surface-variant max-w-md text-right">
+                    Precise blast analysis is the cornerstone of modern defensive architecture and offensive strategic planning.
+                </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<div class="md:col-span-8 glass-panel p-8 relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 font-mono-data text-primary-fixed/20 text-4xl font-bold">01</div>
+<h3 class="font-title-md text-primary-fixed mb-4">TACTICAL ADVANTAGE</h3>
+<p class="font-body-md text-on-surface-variant mb-6">
+                        In an era of asymmetric warfare, understanding the precise impact of explosive force on structural integrity is paramount. ASTRON-X provides the calculated edge required for mission success.
+                    </p>
+<div class="grid grid-cols-3 gap-4">
+<div class="bg-surface-container p-4 border-l-2 border-primary-fixed">
+<div class="font-label-sm text-primary-fixed mb-1">ACCURACY</div>
+<div class="font-headline-lg text-[24px]">99.8%</div>
+</div>
+<div class="bg-surface-container p-4 border-l-2 border-primary-fixed">
+<div class="font-label-sm text-primary-fixed mb-1">LATENCY</div>
+<div class="font-headline-lg text-[24px]">42ms</div>
+</div>
+<div class="bg-surface-container p-4 border-l-2 border-primary-fixed">
+<div class="font-label-sm text-primary-fixed mb-1">MODELS</div>
+<div class="font-headline-lg text-[24px]">240+</div>
+</div>
+</div>
+</div>
+<div class="md:col-span-4 bg-primary-fixed text-on-primary-fixed p-8 flex flex-col justify-between">
+<span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">security</span>
+<div>
+<h3 class="font-headline-lg text-[20px] mb-2">SECURE DEFENSE GRID</h3>
+<p class="font-label-sm opacity-80 uppercase tracking-wider">Protocol: AES-256 Multi-layer Encryption</p>
+</div>
+</div>
+<div class="md:col-span-4 glass-panel h-64 relative overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center grayscale opacity-40 group-hover:opacity-60 transition-opacity" data-alt="A macro close-up of a high-tech circuit board with glowing blue neon energy pulses flowing through the traces, conveying a sense of advanced digital processing and defense technology. The lighting is low and moody with sharp cyan highlights." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA20eDFiylSlAvAqZL4lANX7ZasT2ZcS1BwJzjM1yaKYviaZxYh6rh3Nx0QjhoF8gW7xRH-AWgIsp1fUgLy5YExSGDK56IrXdeGYzuENJZjWnVlIgCHYZoahO_ZRBYzcwrRh9KfWItqNJ-wAbM19u3U5lJwK_HxpAAIyzZ-1ac5R5krPuiQn10YxqzXCWqZCb8N5TmZsacLX7ro6oSZ5dlPGCNcLkMdaswpi1uuHhfPXZInm0i5uu_jItXDI_ZBQZfVfOHVdil0g5Y')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-background p-6 flex flex-col justify-end">
+<h4 class="font-title-md text-primary-fixed">CASUALTY REDUCTION</h4>
+</div>
+</div>
+<div class="md:col-span-8 glass-panel h-64 flex flex-col md:flex-row">
+<div class="p-8 flex-1">
+<h4 class="font-title-md text-primary-fixed mb-2">STRUCTURAL RESILIENCE</h4>
+<p class="font-body-md text-on-surface-variant">Simulating stress points on reinforced materials using non-linear finite element analysis.</p>
+</div>
+<div class="w-full md:w-1/2 bg-surface-container-highest flex items-center justify-center">
+
+</div>
+</div>
+</div>
+</section>
+<!-- Features & Military Specs -->
+<section class="py-24 bg-surface-container-lowest/50 border-y border-outline-variant/10">
+<div class="px-margin-desktop max-w-container-max mx-auto">
+<div class="mb-16">
+<span class="font-label-sm text-primary-fixed tracking-widest uppercase">Technical Specifications</span>
+<h2 class="font-headline-lg text-headline-lg mt-2">CORE CAPABILITIES</h2>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+<!-- Feature 1 -->
+<div class="flex flex-col gap-6">
+<div class="w-16 h-16 border border-primary-fixed/30 flex items-center justify-center bg-primary-fixed/5">
+<span class="material-symbols-outlined text-primary-fixed text-3xl">view_in_ar</span>
+</div>
+<h3 class="font-title-md text-primary">REAL-TIME 3D VISUALIZATION</h3>
+<p class="font-body-md text-on-surface-variant leading-relaxed">
+                            Leveraging Three.js for immersive, high-fidelity spatial analysis of blast radii. Rotate, zoom, and dissect explosion spheres in a full 3D environment.
+                        </p>
+<div class="flex flex-wrap gap-2">
+<span class="bg-surface-bright px-3 py-1 font-mono-data text-[10px] text-primary-fixed/70 border border-outline-variant/30">VOXEL_ENGINE</span>
+<span class="bg-surface-bright px-3 py-1 font-mono-data text-[10px] text-primary-fixed/70 border border-outline-variant/30">GPU_ACCELERATED</span>
+</div>
+</div>
+<!-- Feature 2 -->
+<div class="flex flex-col gap-6">
+<div class="w-16 h-16 border border-primary-fixed/30 flex items-center justify-center bg-primary-fixed/5">
+<span class="material-symbols-outlined text-primary-fixed text-3xl">functions</span>
+</div>
+<h3 class="font-title-md text-primary">MILITARY-GRADE FORMULAS</h3>
+<p class="font-body-md text-on-surface-variant leading-relaxed">
+                            Hard-coded integration of TM5-855-1 standards and Philip HC/MC/GP predictive models for accurate peak overpressure and impulse calculations.
+                        </p>
+<div class="flex flex-wrap gap-2">
+<span class="bg-surface-bright px-3 py-1 font-mono-data text-[10px] text-primary-fixed/70 border border-outline-variant/30">TM5-855-1</span>
+<span class="bg-surface-bright px-3 py-1 font-mono-data text-[10px] text-primary-fixed/70 border border-outline-variant/30">PHILIP_MODELS</span>
+</div>
+</div>
+<!-- Feature 3 -->
+<div class="flex flex-col gap-6">
+<div class="w-16 h-16 border border-primary-fixed/30 flex items-center justify-center bg-primary-fixed/5">
+<span class="material-symbols-outlined text-primary-fixed text-3xl">monitoring</span>
+</div>
+<h3 class="font-title-md text-primary">DAMAGE INTELLIGENCE</h3>
+<p class="font-body-md text-on-surface-variant leading-relaxed">
+                            Comprehensive reporting suite that translates raw physics data into actionable military intelligence, including casualty probability maps.
+                        </p>
+<div class="flex flex-wrap gap-2">
+<span class="bg-surface-bright px-3 py-1 font-mono-data text-[10px] text-primary-fixed/70 border border-outline-variant/30">AUTO_REPORT</span>
+<span class="bg-surface-bright px-3 py-1 font-mono-data text-[10px] text-primary-fixed/70 border border-outline-variant/30">SECURE_EXPORT</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Technology Stack -->
+<section class="py-24 px-margin-desktop max-w-container-max mx-auto text-center">
+
+
+</section>
+<!-- Footer -->
+<footer class="bg-surface-container-low border-t border-outline-variant/20 py-12 px-margin-desktop">
+<div class="max-w-container-max mx-auto flex flex-col md:flex-row justify-between items-start gap-12">
+<div class="max-w-sm">
+<h2 class="font-display-lg text-[24px] text-primary-fixed font-bold mb-4">DRDO-HazardScope</h2>
+<p class="font-body-md text-on-surface-variant">
+                        A proprietary simulation platform developed for high-precision defense logistics and structural assessment. Authorized access only.
+                    </p>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-3 gap-12">
+<div>
+<h4 class="font-label-sm text-primary mb-4 uppercase">Directives</h4>
+<ul class="space-y-2 text-on-surface-variant font-label-sm">
+<li class=""><a class="hover:text-primary-fixed transition-colors" href="#">Documentation</a></li>
+<li class=""><a class="hover:text-primary-fixed transition-colors" href="#">API Keys</a></li>
+<li class=""><a class="hover:text-primary-fixed transition-colors" href="#">System Status</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-label-sm text-primary mb-4 uppercase">Legal</h4>
+<ul class="space-y-2 text-on-surface-variant font-label-sm">
+<li class=""><a class="hover:text-primary-fixed transition-colors" href="#">Compliance</a></li>
+<li class=""><a class="hover:text-primary-fixed transition-colors" href="#">Terms of Use</a></li>
+<li class=""><a class="hover:text-primary-fixed transition-colors" href="#">Privacy Policy</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-label-sm text-primary mb-4 uppercase">Support</h4>
+<ul class="space-y-2 text-on-surface-variant font-label-sm">
+<li class=""><a class="hover:text-primary-fixed transition-colors" href="#">Sector-7 Ops</a></li>
+<li class=""><a class="hover:text-primary-fixed transition-colors" href="#">Bug Bounty</a></li>
+<li class=""><a class="hover:text-primary-fixed transition-colors" href="#">Training</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="max-w-container-max mx-auto mt-12 pt-8 border-t border-outline-variant/10 flex justify-between items-center font-mono-data text-[10px] text-on-surface-variant/50">
+<div class="">© 2024 DEFENSE RESEARCH &amp; SIMULATION COMMAND</div>
+<div class="">BUILD_VER: 2.0.4-STABLE</div>
+</div>
+</footer>
+</main>
+<!-- Background Atmospheric Effect -->
+<div class="fixed inset-0 pointer-events-none z-[-1] opacity-20">
+<!-- STITCH_THREEJS_START:ANIMATION_3 class="w-full h-full" -->
+<div class="w-full h-full" style="display:block;">
+<script src="https://ajax.googleapis.com/ajax/libs/threejs/r125/three.min.js"></script>
+<div id="threejs-container-ANIMATION_3" style="width:100%;height:100%"></div>
+<script src="simulator.js"></script>
+</div>
+<!-- STITCH_THREEJS_END:ANIMATION_3 -->
+</div>
+<script>
+        // Micro-interaction for buttons
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('mousedown', () => {
+                button.style.transform = 'scale(0.95)';
+            });
+            button.addEventListener('mouseup', () => {
+                button.style.transform = 'scale(1)';
+            });
+        });
+
+        // Simple terminal typing effect for the HUD
+        const hudCoords = document.querySelector('.absolute.bottom-12.left-12 div:nth-child(1)');
+        if(hudCoords) {
+            setInterval(() => {
+                let lat = (28.6139 + (Math.random() - 0.5) * 0.001).toFixed(4);
+                let lng = (77.2090 + (Math.random() - 0.5) * 0.001).toFixed(4);
+                hudCoords.textContent = `COORD: ${lat}° N, ${lng}° E`;
+            }, 3000);
+        }
+    </script>
+
+
+</body></html>

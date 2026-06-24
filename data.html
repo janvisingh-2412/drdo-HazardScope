@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ASTRON-X | Advanced Blast Damage Assessment</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Geist:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .scanline {
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(116, 245, 255, 0.2), transparent);
+        }
+        .segmented-progress {
+            display: flex;
+            gap: 2px;
+        }
+        .progress-block {
+            height: 8px;
+            flex: 1;
+            background: rgba(116, 245, 255, 0.1);
+            transition: background 0.3s ease;
+        }
+        .progress-block.active {
+            background: #00dbe7;
+            box-shadow: 0 0 8px rgba(0, 219, 231, 0.6);
+        }
+        .tactical-border {
+            border-left: 1px solid rgba(116, 245, 255, 0.3);
+        }
+        .pulse-line {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: dash 2s linear forwards;
+        }
+        @keyframes dash {
+            to { stroke-dashoffset: 0; }
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-container": "#464c55",
+                        "primary-fixed": "#74f5ff",
+                        "surface-container-high": "#1f2b34",
+                        "outline-variant": "#3a494b",
+                        "secondary-fixed": "#dde3ee",
+                        "tertiary-container": "#d8dbe4",
+                        "surface-bright": "#2e3b43",
+                        "on-tertiary": "#2d3137",
+                        "on-surface-variant": "#b9cacb",
+                        "on-secondary": "#2b3139",
+                        "surface-dim": "#08151c",
+                        "on-tertiary-container": "#5c6067",
+                        "primary-container": "#00f2ff",
+                        "background": "#08151c",
+                        "on-primary-fixed": "#002022",
+                        "surface-container-highest": "#2a363f",
+                        "on-secondary-container": "#b6bcc7",
+                        "on-tertiary-fixed": "#181c22",
+                        "inverse-on-surface": "#26323a",
+                        "on-error-container": "#ffdad6",
+                        "error": "#ffb4ab",
+                        "surface-container-lowest": "#041017",
+                        "error-container": "#93000a",
+                        "surface-tint": "#00dbe7",
+                        "on-surface": "#d7e4ef",
+                        "on-primary": "#00363a",
+                        "on-error": "#690005",
+                        "secondary": "#c1c7d2",
+                        "inverse-primary": "#00696f",
+                        "inverse-surface": "#d7e4ef",
+                        "surface-variant": "#2a363f",
+                        "surface": "#08151c",
+                        "on-secondary-fixed": "#161c24",
+                        "on-tertiary-fixed-variant": "#43474e",
+                        "on-primary-container": "#006a71",
+                        "tertiary-fixed-dim": "#c3c6cf",
+                        "on-primary-fixed-variant": "#004f54",
+                        "surface-container-low": "#111d25",
+                        "secondary-fixed-dim": "#c1c7d2",
+                        "tertiary-fixed": "#dfe2eb",
+                        "outline": "#849495",
+                        "tertiary": "#f6f7ff",
+                        "on-background": "#d7e4ef",
+                        "primary-fixed-dim": "#00dbe7",
+                        "on-secondary-fixed-variant": "#414750",
+                        "primary": "#e1fdff",
+                        "surface-container": "#152129"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "margin-desktop": "32px",
+                        "gutter": "16px",
+                        "margin-mobile": "16px",
+                        "container-max": "1440px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "mono-data": ["Geist"],
+                        "body-md": ["Inter"],
+                        "title-md": ["Inter"],
+                        "label-sm": ["Geist"],
+                        "headline-lg-mobile": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "mono-data": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "title-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-md selection:bg-primary-fixed/30">
+<!-- Top Navigation -->
+<nav class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-desktop h-16 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30">
+<div class="font-display-lg text-display-lg font-bold tracking-tighter text-primary-fixed drop-shadow-[0_0_8px_rgba(0,219,231,0.4)]">HazardScope</div>
+<div class="hidden md:flex gap-8">
+<a class="text-on-surface-variant font-medium font-title-md text-title-md hover:text-primary-fixed transition-colors duration-200" href="home.html">MISSIONS</a>
+<a class="text-on-surface-variant font-medium font-title-md text-title-md hover:text-primary-fixed transition-colors duration-200" href="3d_simulator.html">TELEMETRY</a>
+<a class="text-primary-fixed border-b-2 border-primary-fixed pb-1 font-title-md text-title-md font-medium" href="data.html">ANALYSIS</a>
+<a class="text-on-surface-variant font-medium font-title-md text-title-md hover:text-primary-fixed transition-colors duration-200" href="#">ARCHIVE</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="bg-primary-fixed text-on-primary-fixed font-bold py-2 px-6 hover:bg-primary-container transition-all active:scale-95" id="initiate-blast-btn">
+            INITIATE BLAST
+        </button>
+<div class="flex gap-2">
+<span class="material-symbols-outlined cursor-pointer text-on-surface-variant hover:text-primary-fixed">settings</span>
+<span class="material-symbols-outlined cursor-pointer text-on-surface-variant hover:text-primary-fixed">notifications</span>
+<span class="material-symbols-outlined cursor-pointer text-on-surface-variant hover:text-primary-fixed">account_circle</span>
+</div>
+</div>
+</nav>
+<!-- Side Navigation -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-64px)] w-64 z-40 flex flex-col bg-surface-container-low/90 backdrop-blur-2xl border-r border-outline-variant/20 shadow-xl hidden lg:flex">
+<div class="p-6">
+<div class="flex items-center gap-3 mb-6">
+<div class="w-10 h-10 bg-primary-fixed/20 flex items-center justify-center border border-primary-fixed/40">
+<span class="material-symbols-outlined text-primary-fixed">security</span>
+</div>
+<div>
+<div class="font-headline-lg text-headline-lg text-primary-fixed text-[14px] leading-tight">STRATEGIC OPS</div>
+</div>
+</div>
+<button class="w-full bg-surface-bright py-3 border border-outline-variant hover:border-primary-fixed text-primary-fixed transition-all flex items-center justify-center gap-2 mb-8" id="new-simulation-btn-side">
+<span class="material-symbols-outlined">add</span> NEW SIMULATION
+        </button>
+</div>
+<nav class="flex-grow">
+<a class="flex items-center gap-4 text-on-surface-variant/70 py-3 px-6 hover:bg-surface-bright/50 font-label-sm text-label-sm uppercase tracking-widest transition-all" href="home.html">
+<span class="material-symbols-outlined">dashboard</span> DASHBOARD
+        </a>
+<a class="flex items-center gap-4 bg-primary-fixed/10 text-primary-fixed border-l-4 border-primary-fixed py-3 px-6 font-label-sm text-label-sm uppercase tracking-widest" href="data.html">
+<span class="material-symbols-outlined">precision_manufacturing</span> EXPLOSIVES
+        </a>
+<a class="flex items-center gap-4 text-on-surface-variant/70 py-3 px-6 hover:bg-surface-bright/50 font-label-sm text-label-sm uppercase tracking-widest transition-all" href="3d_simulator.html">
+<span class="material-symbols-outlined">architecture</span> GEOMETRY
+        </a>
+</nav>
+<div class="mt-auto p-4 border-t border-outline-variant/10">
+<a class="flex items-center gap-4 text-on-surface-variant/70 py-2 px-2 hover:text-primary-fixed font-label-sm text-label-sm uppercase" href="#">
+<span class="material-symbols-outlined text-[18px]">terminal</span> SYSTEMS
+        </a>
+<a class="flex items-center gap-4 text-on-surface-variant/70 py-2 px-2 hover:text-error font-label-sm text-label-sm uppercase" href="#">
+<span class="material-symbols-outlined text-[18px]">logout</span> LOGOUT
+        </a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="lg:ml-64 pt-20 p-margin-desktop min-h-screen bg-surface-container-lowest relative overflow-hidden">
+<!-- Grid Background Overlay -->
+<div class="absolute inset-0 pointer-events-none opacity-[0.03]" style="background-image: radial-gradient(circle at 2px 2px, #74f5ff 1px, transparent 0); background-size: 32px 32px;"></div>
+<!-- Header -->
+<header class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-8 relative z-10">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<div class="h-1 w-8 bg-primary-fixed"></div>
+<span class="font-label-sm text-label-sm text-primary-fixed tracking-[0.2em] uppercase">SYSTEM ID: AX-449-BETA</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface">ADVANCED BLAST ASSESSMENT</h1>
+<p class="text-on-surface-variant max-w-2xl mt-2">Unified analytics engine for high-fidelity shockwave propagation and structural vulnerability modeling.</p>
+</div>
+<div class="bg-surface-container-high px-4 py-2 border-l-4 border-error flex flex-col justify-center transition-colors duration-500" id="threat-level-card">
+<span class="font-label-sm text-label-sm text-on-surface-variant/70 uppercase">THREAT LEVEL</span>
+<span class="text-error font-bold font-mono-data text-xl" id="threat-level-text">SEVERE / HIGH IMPACT</span>
+</div>
+</header>
+<!-- Main Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-gutter relative z-10">
+<!-- Column 1: Inputs & Summary (4 Cols) -->
+<div class="col-span-12 lg:col-span-4 space-y-gutter">
+<!-- Input Console -->
+<section class="bg-surface-container border border-outline-variant/30 p-6 backdrop-blur-md relative overflow-hidden group">
+<div class="scanline absolute top-0 left-0"></div>
+<div class="flex justify-between items-center mb-6">
+<h2 class="font-label-sm text-label-sm text-primary-fixed uppercase tracking-widest flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">settings_input_component</span> INPUT CONSOLE
+                    </h2>
+<span class="text-[10px] text-on-surface-variant/40 font-mono-data">v4.1.2_CALIBRATED</span>
+</div>
+<div class="space-y-4">
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-2">EXPLOSIVE COMPOSITION</label>
+<select class="w-full bg-surface-container-lowest border border-outline-variant/50 text-on-surface py-2 px-3 focus:border-primary-fixed focus:ring-1 focus:ring-primary-fixed outline-none transition-all" id="explosive-type">
+<option value="TNT">TNT (TRINITROTOLUENE)</option>
+<option value="RDX">RDX (CYCLONITE)</option>
+<option selected="" value="HMX">HMX (OCTOGEN)</option>
+<option value="PETN">PETN</option>
+<option value="C4">C4 (PLASTIC EXPLOSIVE)</option>
+<option value="SEMTEX">SEMTEX</option>
+<option value="ANFO">ANFO</option>
+<option value="PENTOLITE">PENTOLITE</option>
+<option value="AMATOL">AMATOL</option>
+<option value="BLACK_POWDER">BLACK POWDER</option>
+</select>
+</div>
+<!-- Consolidated Stability Row -->
+<div class="flex items-center justify-between p-3 bg-surface-container-lowest/50 border border-outline-variant/20">
+<span class="text-xs font-label-sm text-on-surface-variant uppercase">MATERIAL STABILITY:</span>
+<span class="font-mono-data text-xs px-2 py-0.5 border border-error/40 bg-error/5 text-error" id="stability-tag">VOLATILE</span>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-2">NET MASS (KG)</label>
+<input class="w-full bg-surface-container-lowest border border-outline-variant/50 text-on-surface py-2 px-3 focus:border-primary-fixed outline-none font-mono-data" id="net-mass" step="0.01" type="number" value="100.00"/>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-2">DISTANCE (M)</label>
+<input class="w-full bg-surface-container-lowest border border-outline-variant/50 text-on-surface py-2 px-3 focus:border-primary-fixed outline-none font-mono-data" id="distance" step="0.01" type="number" value="25.00"/>
+</div>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-2">CHARGE GEOMETRY</label>
+<div class="grid grid-cols-3 gap-2" id="charge-geometry-container">
+<button class="geometry-btn p-2 border border-primary-fixed bg-primary-fixed/10 text-primary-fixed text-[11px] font-bold text-center" data-type="GENERAL">GENERAL</button>
+<button class="geometry-btn p-2 border border-outline-variant hover:border-primary-fixed text-on-surface-variant text-[11px] font-bold text-center" data-type="SPHERE">SPHERE</button>
+<button class="geometry-btn p-2 border border-outline-variant hover:border-primary-fixed text-on-surface-variant text-[11px] font-bold text-center" data-type="CYLINDER">CYLINDER</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Calculation Summary -->
+<section class="bg-surface-container-high border border-outline-variant/30 p-6 relative">
+<div class="flex justify-between items-center mb-6">
+<h2 class="font-label-sm text-label-sm text-primary-fixed uppercase tracking-widest">BACKEND CALCULATION</h2>
+<div class="px-2 py-0.5 bg-primary-fixed/10 text-primary-fixed font-mono-data text-[10px] border border-primary-fixed/30 uppercase" id="calculation-model-tag">TM5-855-1 ENGAGED</div>
+</div>
+<div class="space-y-3 font-mono-data">
+<div class="flex justify-between items-center p-3 bg-surface-container-lowest/50 border-l-2 border-primary-fixed">
+<span class="text-on-surface-variant text-xs">SCALED DISTANCE (Z)</span>
+<span class="text-primary-fixed font-bold" id="scaled-distance-val">5.38 m/kg¹/³</span>
+</div>
+<div class="flex justify-between items-center p-3 bg-surface-container-lowest/50 border-l-2 border-error">
+<span class="text-on-surface-variant text-xs">PEAK OVERPRESSURE</span>
+<span class="text-error font-bold" id="peak-pressure-val">142.4 kPa (20.6 psi)</span>
+</div>
+<div class="flex justify-between items-center p-3 bg-surface-container-lowest/50 border-l-2 border-outline-variant">
+<span class="text-on-surface-variant text-xs">ARRIVAL TIME</span>
+<span class="text-on-surface" id="arrival-time-val">12.4 ms</span>
+</div>
+<div class="flex justify-between items-center p-3 bg-surface-container-lowest/50 border-l-2 border-outline-variant">
+<span class="text-on-surface-variant text-xs">IMPULSE (Is)</span>
+<span class="text-on-surface" id="impulse-val">422.1 kPa-ms</span>
+</div>
+</div>
+</section>
+</div>
+<!-- Column 2: Data Matrix & Visuals (8 Cols) -->
+<div class="col-span-12 lg:col-span-8 space-y-gutter">
+<!-- Pulse and Structural Matrix Row -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Pulse Duration Graph -->
+<section class="bg-surface-container border border-outline-variant/30 p-6 flex flex-col">
+<h2 class="font-label-sm text-label-sm text-primary-fixed uppercase tracking-widest mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">insights</span> FRIEDLANDER GRAPH
+                    </h2>
+<div class="flex-grow flex items-center justify-center min-h-[180px] bg-surface-container-lowest/30 border border-outline-variant/10 relative p-4">
+<svg class="w-full h-full overflow-visible" viewbox="0 0 200 100">
+<!-- Grid Lines -->
+<line stroke="rgba(116, 245, 255, 0.1)" stroke-width="1" x1="0" x2="200" y1="90" y2="90"></line>
+<line stroke="rgba(116, 245, 255, 0.1)" stroke-width="1" x1="10" x2="10" y1="0" y2="100"></line>
+<!-- Pressure-Time Curve -->
+<path class="pulse-line" d="M 10 90 L 15 10 L 40 85 L 70 95 L 120 90 L 190 90" fill="none" id="pulse-path" stroke="#00dbe7" stroke-width="2"></path>
+<!-- Labels -->
+<text fill="rgba(185, 202, 203, 0.5)" font-family="Geist" font-size="6" x="10" y="100">0 ms</text>
+<text fill="rgba(185, 202, 203, 0.5)" font-family="Geist" font-size="6" x="180" y="100">t+</text>
+<text fill="rgba(185, 202, 203, 0.5)" font-family="Geist" font-size="6" transform="rotate(-90, 0, 15)" x="0" y="15">PRESSURE</text>
+</svg>
+<div class="absolute top-2 right-2 flex flex-col items-end gap-1">
+<span class="text-[9px] font-mono-data text-primary-fixed">P+ PHASE</span>
+<span class="text-[9px] font-mono-data text-on-surface-variant">V=343m/s</span>
+</div>
+</div>
+</section>
+<!-- Structural Damage Matrix -->
+<section class="bg-surface-container border border-outline-variant/30 p-6">
+<h2 class="font-label-sm text-label-sm text-primary-fixed uppercase tracking-widest mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">domain_verification</span> STRUCTURAL DAMAGE MATRIX
+                    </h2>
+<div class="space-y-2">
+<div class="grid grid-cols-12 items-center gap-2 p-2 bg-surface-container-lowest/50 border-l-2 border-primary-fixed" id="matrix-item-glass">
+<span class="col-span-4 text-[11px] font-bold">GLASS (WINDOWS)</span>
+<div class="col-span-6 h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary-fixed transition-all duration-500" id="matrix-bar-glass" style="width: 10%"></div>
+</div>
+<span class="col-span-2 text-right text-[10px] font-mono-data text-on-surface-variant" id="matrix-status-glass">SAFE</span>
+</div>
+<div class="grid grid-cols-12 items-center gap-2 p-2 bg-surface-container-lowest/50 border-l-2 border-outline-variant" id="matrix-item-masonry">
+<span class="col-span-4 text-[11px] font-bold">WALLS (MASONRY)</span>
+<div class="col-span-6 h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary-fixed transition-all duration-500" id="matrix-bar-masonry" style="width: 5%"></div>
+</div>
+<span class="col-span-2 text-right text-[10px] font-mono-data text-on-surface-variant" id="matrix-status-masonry">NOMINAL</span>
+</div>
+<div class="grid grid-cols-12 items-center gap-2 p-2 bg-surface-container-lowest/50 border-l-2 border-outline-variant" id="matrix-item-steel">
+<span class="col-span-4 text-[11px] font-bold">BLDG (STEEL)</span>
+<div class="col-span-6 h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary-fixed transition-all duration-500" id="matrix-bar-steel" style="width: 2%"></div>
+</div>
+<span class="col-span-2 text-right text-[10px] font-mono-data text-on-surface-variant" id="matrix-status-steel">STABLE</span>
+</div>
+</div>
+</section>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Damage Assessment: Human (Simplified visual) -->
+<section class="bg-surface-container border border-outline-variant/30 p-6">
+<h2 class="font-label-sm text-label-sm text-primary-fixed uppercase tracking-widest mb-4">PHYSIOLOGICAL IMPACT</h2>
+<div class="space-y-3">
+<div class="flex items-center gap-3" id="zone-lethal">
+<div class="w-12 h-12 border border-outline-variant/50 flex flex-col items-center justify-center font-mono-data text-xs">
+<span class="text-on-surface-variant">ZONE</span>
+<span class="text-error font-bold" id="zone-text-lethal">Z-05</span>
+</div>
+<div class="flex-grow">
+<div class="text-[13px] font-bold">LETHAL OVERPRESSURE</div>
+<div class="segmented-progress mt-1" id="progress-lethal">
+<div class="progress-block"></div><div class="progress-block"></div><div class="progress-block"></div><div class="progress-block"></div><div class="progress-block"></div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3" id="zone-lung">
+<div class="w-12 h-12 border border-outline-variant/50 flex flex-col items-center justify-center font-mono-data text-xs">
+<span class="text-on-surface-variant">ZONE</span>
+<span class="text-on-surface font-bold" id="zone-text-lung">Z-05</span>
+</div>
+<div class="flex-grow">
+<div class="text-[13px] font-bold">LUNG DAMAGE / EAR RUPTURE</div>
+<div class="segmented-progress mt-1" id="progress-lung">
+<div class="progress-block"></div><div class="progress-block"></div><div class="progress-block"></div><div class="progress-block"></div><div class="progress-block"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Status Monitor -->
+<section class="bg-surface-container border border-outline-variant/30 p-6">
+<h2 class="font-label-sm text-label-sm text-primary-fixed uppercase tracking-widest mb-4">SYSTEM VULNERABILITY</h2>
+<div class="space-y-4" id="structural-vulnerability-list">
+<div class="flex justify-between items-center text-[13px] tactical-border pl-3">
+<div>
+<div class="font-bold">UNREINFORCED MASONRY</div>
+<div class="text-[11px] text-on-surface-variant uppercase" id="structural-desc-1">STATUS: MONITORING</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant" id="structural-icon-1">info</span>
+</div>
+<div class="flex justify-between items-center text-[13px] tactical-border pl-3">
+<div>
+<div class="font-bold">STEEL FRAME ARCHITECTURE</div>
+<div class="text-[11px] text-on-surface-variant uppercase" id="structural-desc-2">STATUS: MONITORING</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant" id="structural-icon-2">info</span>
+</div>
+</div>
+</section>
+</div>
+<!-- Propagation Analytics (Blast Intensity Gradient) -->
+<section class="bg-surface-container border border-outline-variant/30 p-6 min-h-[250px] relative">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h2 class="font-label-sm text-label-sm text-primary-fixed uppercase tracking-widest">BLAST INTENSITY GRADIENT</h2>
+<p class="text-[10px] text-on-surface-variant mt-1">PRESSURE DECAY OVER DISTANCE (1/R³)</p>
+</div>
+<div class="px-2 py-1 bg-surface-container-highest border border-outline-variant/30 text-[10px] font-mono-data text-primary-fixed">
+                        ATMOSPHERIC LOSS: NOMINAL
+                    </div>
+</div>
+<div class="relative h-24 w-full bg-gradient-to-r from-error/40 via-primary-fixed/20 to-transparent border border-outline-variant/10 mb-8" id="intensity-gradient">
+<div class="absolute inset-0 flex items-center justify-between px-4">
+<span class="text-[9px] font-mono-data font-bold text-error">EPICENTER</span>
+<div class="h-full w-[1px] bg-outline-variant/30 relative">
+<span class="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] font-mono-data text-on-surface-variant">50M</span>
+</div>
+<div class="h-full w-[1px] bg-outline-variant/30 relative">
+<span class="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] font-mono-data text-on-surface-variant">100M</span>
+</div>
+<div class="h-full w-[1px] bg-outline-variant/30 relative">
+<span class="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] font-mono-data text-on-surface-variant">150M</span>
+</div>
+<span class="text-[9px] font-mono-data text-on-surface-variant">EXTINCTION</span>
+</div>
+<div class="absolute top-1/2 -translate-y-1/2 h-1 bg-primary-fixed shadow-[0_0_10px_#00dbe7] transition-all duration-700" id="current-range-indicator" style="left: 0; width: 25%;"></div>
+</div>
+<div class="grid grid-cols-10 items-end gap-1 h-20" id="analytics-bar-chart">
+<!-- Decay Bars -->
+<div class="flex-grow bg-primary-fixed/20 border-t border-primary-fixed transition-all duration-700 h-[100%]"></div>
+<div class="flex-grow bg-primary-fixed/20 border-t border-primary-fixed transition-all duration-700 h-[80%]"></div>
+<div class="flex-grow bg-primary-fixed/20 border-t border-primary-fixed transition-all duration-700 h-[60%]"></div>
+<div class="flex-grow bg-primary-fixed/20 border-t border-primary-fixed transition-all duration-700 h-[45%]"></div>
+<div class="flex-grow bg-primary-fixed/20 border-t border-primary-fixed transition-all duration-700 h-[35%]"></div>
+<div class="flex-grow bg-primary-fixed/20 border-t border-primary-fixed transition-all duration-700 h-[28%]"></div>
+<div class="flex-grow bg-primary-fixed/20 border-t border-primary-fixed transition-all duration-700 h-[22%]"></div>
+<div class="flex-grow bg-primary-fixed/20 border-t border-primary-fixed transition-all duration-700 h-[18%]"></div>
+<div class="flex-grow bg-primary-fixed/20 border-t border-primary-fixed transition-all duration-700 h-[15%]"></div>
+<div class="flex-grow bg-primary-fixed/20 border-t border-primary-fixed transition-all duration-700 h-[12%]"></div>
+</div>
+</section>
+</div>
+</div>
+<!-- Footer Action Bar -->
+<footer class="mt-8 flex flex-col md:flex-row justify-between items-center gap-4 bg-surface-container-highest/80 backdrop-blur-xl p-4 border border-outline-variant/30 sticky bottom-4 z-50">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary-fixed animate-ping"></span>
+<span class="font-mono-data text-[11px] text-primary-fixed uppercase">ENGINE STATUS: SYNCED</span>
+</div>
+<div class="font-mono-data text-[11px] text-on-surface-variant" id="system-signature">LATEST SIG: 0x889AF2...</div>
+</div>
+<div class="flex flex-wrap gap-2 w-full md:w-auto">
+<button class="flex-1 md:flex-none border border-outline-variant py-2 px-4 font-label-sm text-label-sm uppercase hover:bg-surface-bright transition-all" id="save-archive-btn">SAVE TO ARCHIVE</button>
+<button class="flex-1 md:flex-none bg-surface-bright border border-primary-fixed/30 text-primary-fixed py-2 px-6 font-bold text-[11px] uppercase tracking-wider hover:bg-primary-fixed/10 flex items-center justify-center gap-2 transition-all" id="generate-pdf-btn">
+<span class="material-symbols-outlined text-[18px]">picture_as_pdf</span> SAVE &amp; GENERATE PDF
+            </button>
+<button class="flex-1 md:flex-none bg-primary-fixed text-on-primary-fixed py-2 px-8 font-bold text-sm tracking-tight hover:brightness-110 active:scale-95 transition-all" id="new-analysis-btn">
+                START NEW ANALYSIS
+            </button>
+</div>
+</footer>
+</main>
+<!-- Mobile Bottom Navigation -->
+<nav class="fixed bottom-0 w-full z-50 flex md:hidden bg-surface-container-highest border-t border-outline-variant/30 h-16">
+<a class="flex-1 flex flex-col items-center justify-center text-primary-fixed" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[10px]">DASHBOARD</span>
+</a>
+<a class="flex-1 flex flex-col items-center justify-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-[10px]">ANALYSIS</span>
+</a>
+<a class="flex-1 flex flex-col items-center justify-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="text-[10px]">REPORTS</span>
+</a>
+<a class="flex-1 flex flex-col items-center justify-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px]">CONFIG</span>
+</a>
+</nav>
+<script>
+    /**
+     * ASTRON-X Assessment Engine - Updated Core Script
+     */
+
+    // Configuration Data
+    const EXPLOSIVES = {
+        'TNT': { re: 1.0, stability: 'NOMINAL', color: 'primary-fixed' },
+        'RDX': { re: 1.6, stability: 'REACTIVE', color: 'error' },
+        'HMX': { re: 1.7, stability: 'VOLATILE', color: 'error' },
+        'PETN': { re: 1.66, stability: 'VOLATILE', color: 'error' },
+        'C4': { re: 1.37, stability: 'STABLE', color: 'on-surface-variant' },
+        'SEMTEX': { re: 1.4, stability: 'REACTIVE', color: 'on-surface-variant' },
+        'ANFO': { re: 0.82, stability: 'STABLE', color: 'on-surface-variant' },
+        'PENTOLITE': { re: 1.28, stability: 'REACTIVE', color: 'on-surface-variant' },
+        'AMATOL': { re: 0.97, stability: 'NOMINAL', color: 'primary-fixed' },
+        'BLACK_POWDER': { re: 0.55, stability: 'VOLATILE', color: 'error' }
+    };
+
+    // State
+    let currentGeometry = 'GENERAL';
+
+    // Elements
+    const explosiveSelect = document.getElementById('explosive-type');
+    const netMassInput = document.getElementById('net-mass');
+    const distanceInput = document.getElementById('distance');
+    const geometryBtns = document.querySelectorAll('.geometry-btn');
+    const initiateBtn = document.getElementById('initiate-blast-btn');
+    const newAnalysisBtn = document.getElementById('new-analysis-btn');
+    const saveArchiveBtn = document.getElementById('save-archive-btn');
+    const generatePdfBtn = document.getElementById('generate-pdf-btn');
+
+    // UI Elements for Updates
+    const stabilityTag = document.getElementById('stability-tag');
+    const scaledDistDisplay = document.getElementById('scaled-distance-val');
+    const peakPressureDisplay = document.getElementById('peak-pressure-val');
+    const arrivalTimeDisplay = document.getElementById('arrival-time-val');
+    const impulseDisplay = document.getElementById('impulse-val');
+    const threatLevelCard = document.getElementById('threat-level-card');
+    const threatLevelText = document.getElementById('threat-level-text');
+    const calcModelTag = document.getElementById('calculation-model-tag');
+
+    // --- Core Logic ---
+
+    function calculate() {
+        const type = explosiveSelect.value;
+        const mass = parseFloat(netMassInput.value) || 0;
+        const dist = parseFloat(distanceInput.value) || 0;
+        const explosiveData = EXPLOSIVES[type];
+        const re = explosiveData.re;
+
+        // Stability update
+        stabilityTag.textContent = explosiveData.stability;
+        stabilityTag.className = `font-mono-data text-xs px-2 py-0.5 border ${explosiveData.stability === 'VOLATILE' ? 'border-error/40 bg-error/5 text-error' : 'border-primary-fixed/40 bg-primary-fixed/5 text-primary-fixed'}`;
+
+        // 1. TNT Equivalency
+        const wTnt = mass * re;
+
+        // 2. Scaled Distance (Z)
+        const z = dist / Math.pow(wTnt, 1/3);
+
+        // 3. Peak Overpressure
+        let p_psi = 0;
+        if (z > 0) {
+            let factor = 1.0;
+            switch(currentGeometry) {
+                case 'SPHERE': factor = 1.2; break;
+                case 'CYLINDER': factor = 0.9; break;
+                default: factor = 1.0;
+            }
+            if (z < 1) p_psi = (1000 / z) * factor;
+            else if (z < 5) p_psi = (200 / Math.pow(z, 2)) * factor;
+            else p_psi = (100 / Math.pow(z, 3)) * factor;
+        }
+        
+        const p_kpa = p_psi * 6.89476;
+        const arrivalMs = dist > 0 ? (dist / 343) * 1000 : 0;
+        const positiveDuration = z * 2.5; 
+        const impulse = 0.5 * p_kpa * positiveDuration;
+
+        updateUI(z, p_psi, p_kpa, arrivalMs, impulse, dist);
+    }
+
+    function updateUI(z, p_psi, p_kpa, arrivalMs, impulse, distance) {
+        // Numeric Displays
+        scaledDistDisplay.textContent = `${z.toFixed(2)} m/kg¹/³`;
+        peakPressureDisplay.textContent = `${p_kpa.toFixed(1)} kPa (${p_psi.toFixed(1)} psi)`;
+        arrivalTimeDisplay.textContent = `${arrivalMs.toFixed(1)} ms`;
+        impulseDisplay.textContent = `${impulse.toFixed(1)} kPa-ms`;
+
+        calcModelTag.textContent = `${currentGeometry === 'GENERAL' ? 'TM5-855-1' : currentGeometry} ENGAGED`;
+
+        // Threat Level
+        if (p_psi > 45) {
+            threatLevelCard.className = "bg-surface-container-high px-4 py-2 border-l-4 border-error flex flex-col justify-center transition-colors duration-500";
+            threatLevelText.textContent = "SEVERE / CRITICAL IMPACT";
+            threatLevelText.className = "text-error font-bold font-mono-data text-xl";
+        } else if (p_psi > 10) {
+            threatLevelCard.className = "bg-surface-container-high px-4 py-2 border-l-4 border-amber-500 flex flex-col justify-center transition-colors duration-500";
+            threatLevelText.textContent = "HIGH / MODERATE RISK";
+            threatLevelText.className = "text-amber-500 font-bold font-mono-data text-xl";
+        } else {
+            threatLevelCard.className = "bg-surface-container-high px-4 py-2 border-l-4 border-primary-fixed flex flex-col justify-center transition-colors duration-500";
+            threatLevelText.textContent = "LOW / CONTROLLED";
+            threatLevelText.className = "text-primary-fixed font-bold font-mono-data text-xl";
+        }
+
+        // Physiological
+        updateProgressBars('progress-lethal', p_psi, 45, 100, 'zone-text-lethal');
+        updateProgressBars('progress-lung', p_psi, 5, 45, 'zone-text-lung');
+
+        // Structural Vulnerability (Side panel)
+        updateStructuralVulnerability(p_psi);
+
+        // Structural Matrix (Top right)
+        updateStructuralMatrix(p_psi);
+
+        // Pulse Graph
+        updatePulseGraph(p_psi);
+
+        // Decay Bars and Gradient
+        updateDecayBars(p_psi, distance);
+    }
+
+    function updateProgressBars(containerId, psi, min, max, zoneTextId) {
+        const blocks = document.querySelectorAll(`#${containerId} .progress-block`);
+        const percent = Math.min(100, Math.max(0, ((psi - min) / (max - min)) * 100));
+        const activeCount = Math.ceil((percent / 100) * blocks.length);
+        blocks.forEach((b, i) => {
+            if (i < activeCount) b.classList.add('active');
+            else b.classList.remove('active');
+        });
+
+        if (zoneTextId) {
+            const zoneSpan = document.getElementById(zoneTextId);
+            if (zoneSpan) {
+                let zoneNum = 6 - activeCount;
+                if (zoneNum > 5) zoneNum = 5;
+                if (zoneNum < 1) zoneNum = 1;
+                zoneSpan.textContent = `Z-0${zoneNum}`;
+                
+                if (zoneNum <= 2) {
+                    zoneSpan.className = 'text-error font-bold';
+                } else if (zoneNum <= 3) {
+                    zoneSpan.className = 'text-orange-500 font-bold';
+                } else {
+                    zoneSpan.className = 'text-on-surface font-bold';
+                }
+            }
+        }
+    }
+
+    function updateStructuralMatrix(psi) {
+        const glassBar = document.getElementById('matrix-bar-glass');
+        const glassStatus = document.getElementById('matrix-status-glass');
+        const glassPerc = Math.min(100, (psi / 3) * 100);
+        glassBar.style.width = `${glassPerc}%`;
+        glassStatus.textContent = psi > 3 ? 'SHATTERED' : 'SAFE';
+        glassStatus.className = `col-span-2 text-right text-[10px] font-mono-data ${psi > 3 ? 'text-error' : 'text-on-surface-variant'}`;
+
+        const masonryBar = document.getElementById('matrix-bar-masonry');
+        const masonryStatus = document.getElementById('matrix-status-masonry');
+        const masonryPerc = Math.min(100, (psi / 10) * 100);
+        masonryBar.style.width = `${masonryPerc}%`;
+        masonryStatus.textContent = psi > 10 ? 'FAILURE' : 'NOMINAL';
+        masonryStatus.className = `col-span-2 text-right text-[10px] font-mono-data ${psi > 10 ? 'text-error' : 'text-on-surface-variant'}`;
+
+        const steelBar = document.getElementById('matrix-bar-steel');
+        const steelStatus = document.getElementById('matrix-status-steel');
+        const steelPerc = Math.min(100, (psi / 40) * 100);
+        steelBar.style.width = `${steelPerc}%`;
+        steelStatus.textContent = psi > 40 ? 'CRITICAL' : 'STABLE';
+        steelStatus.className = `col-span-2 text-right text-[10px] font-mono-data ${psi > 40 ? 'text-error' : 'text-on-surface-variant'}`;
+    }
+
+    function updateStructuralVulnerability(psi) {
+        const items = [
+            { id: 1, threshold: 10, text: 'COLLAPSE RISK HIGH', alert: 'warning' },
+            { id: 2, threshold: 30, text: 'BUCKLING DETECTED', alert: 'trending_up' }
+        ];
+        items.forEach(item => {
+            const desc = document.getElementById(`structural-desc-${item.id}`);
+            const icon = document.getElementById(`structural-icon-${item.id}`);
+            if (desc && icon) {
+                if (psi >= item.threshold) {
+                    desc.textContent = item.text;
+                    desc.classList.replace('text-on-surface-variant', 'text-error');
+                    icon.className = `material-symbols-outlined text-error`;
+                    icon.textContent = item.alert;
+                } else {
+                    desc.textContent = 'STATUS: NOMINAL';
+                    desc.classList.replace('text-error', 'text-on-surface-variant');
+                    icon.className = `material-symbols-outlined text-on-surface-variant`;
+                    icon.textContent = 'info';
+                }
+            }
+        });
+    }
+
+    function updatePulseGraph(psi) {
+        const path = document.getElementById('pulse-path');
+        const peakY = Math.max(10, 90 - (psi * 2));
+        const durationX = Math.min(190, 40 + (psi / 2));
+        path.setAttribute('d', `M 10 90 L 15 ${peakY} L ${durationX} 90 L ${durationX + 20} 95 L 190 90`);
+        path.style.animation = 'none';
+        void path.offsetWidth; // Trigger reflow
+        path.style.animation = 'dash 1.5s linear forwards';
+    }
+
+    function updateDecayBars(psi, distance) {
+        const indicator = document.getElementById('current-range-indicator');
+        const distancePerc = Math.min(100, (distance / 200) * 100);
+        indicator.style.width = `${distancePerc}%`;
+
+        const bars = document.querySelectorAll('#analytics-bar-chart div');
+        bars.forEach((bar, i) => {
+            const decay = psi / Math.pow(i + 1, 1.2);
+            bar.style.height = `${Math.min(100, decay * 3)}%`;
+            bar.style.opacity = distancePerc > (i * 10) ? '1' : '0.3';
+        });
+    }
+
+    // --- Interaction ---
+
+    function reset() {
+        netMassInput.value = "100.00";
+        distanceInput.value = "25.00";
+        explosiveSelect.value = "HMX";
+        currentGeometry = 'GENERAL';
+        updateGeometryButtons();
+        calculate();
+        document.body.classList.add('opacity-50');
+        setTimeout(() => document.body.classList.remove('opacity-50'), 200);
+    }
+
+    function updateGeometryButtons() {
+        geometryBtns.forEach(btn => {
+            if (btn.dataset.type === currentGeometry) {
+                btn.classList.add('border-primary-fixed', 'bg-primary-fixed/10', 'text-primary-fixed');
+                btn.classList.remove('border-outline-variant', 'text-on-surface-variant');
+            } else {
+                btn.classList.remove('border-primary-fixed', 'bg-primary-fixed/10', 'text-primary-fixed');
+                btn.classList.add('border-outline-variant', 'text-on-surface-variant');
+            }
+        });
+    }
+
+    // --- Listeners ---
+
+    [netMassInput, distanceInput, explosiveSelect].forEach(el => {
+        el.addEventListener('input', calculate);
+    });
+
+    geometryBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            currentGeometry = btn.dataset.type;
+            updateGeometryButtons();
+            calculate();
+        });
+    });
+
+    initiateBtn.addEventListener('click', calculate);
+    newAnalysisBtn.addEventListener('click', reset);
+    
+    saveArchiveBtn.addEventListener('click', () => {
+        alert('Analysis saved to encrypted strategic archive.');
+    });
+
+    generatePdfBtn.addEventListener('click', () => {
+        const signature = `0x${Math.random().toString(16).slice(2, 8).toUpperCase()}`;
+        document.getElementById('system-signature').textContent = `LATEST SIG: ${signature}...`;
+        
+        const element = document.body;
+        const opt = {
+          margin:       0.5,
+          filename:     `astron-x-report-${signature}.pdf`,
+          image:        { type: 'jpeg', quality: 0.98 },
+          html2canvas:  { scale: 2, useCORS: true },
+          jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
+        };
+
+        // Generating PDF
+        setTimeout(() => {
+            html2pdf().set(opt).from(element).save().then(() => {
+                alert(`Generated PDF report for analysis ${signature}. Compile status: 100%`);
+            });
+        }, 100);
+    });
+
+    // Initialize
+    calculate();
+
+    // Subtle atmospheric pulses
+    setInterval(() => {
+        const activeBlocks = document.querySelectorAll('.progress-block.active');
+        if (activeBlocks.length) {
+            const block = activeBlocks[Math.floor(Math.random() * activeBlocks.length)];
+            block.classList.add('brightness-125');
+            setTimeout(() => block.classList.remove('brightness-125'), 400);
+        }
+    }, 3000);
+
+</script>
+</body></html>
